@@ -21,7 +21,7 @@
         <div class="gifBox">
             <div v-if="currentGifs.length >= 1" :style="{top: card.position + 'px'}" v-for:="card in currentGifs" class="gifCard">
               <router-link :to="'/card/' + card.id">
-                <img :src="card.img" alt="">
+                <img :style="{width: innerWidth && innerWidth < 650 ? (innerWidth - 50) + 'px' : 'auto'}" :src="card.img" alt="">
               </router-link>
             </div>
             <div class="nothing" v-if="(currentGifs.length === 0 && !isRequestInProgress)">
@@ -37,14 +37,22 @@
       
     </v-responsive>
 
+    <div class="goUp" @click="goUpHandler">
+      <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+        <path d="M0 16c0 8.837 7.163 16 16 16s16-7.163 16-16-7.163-16-16-16-16 7.163-16 16zM29 16c0 7.18-5.82 13-13 13s-13-5.82-13-13 5.82-13 13-13 13 5.82 13 13z"></path>
+        <path d="M22.086 20.914l2.829-2.829-8.914-8.914-8.914 8.914 2.828 2.828 6.086-6.086z"></path>
+      </svg>
+    </div>
+
   </v-container>
 
 </template>
 
 <script lang="ts">
   import gsap from 'gsap';
+  import MyRequestControll from '@/classes/MyRequestControll';
 
-  interface Icard {
+ interface Icard {
     img: string
     id: string
     position: number
@@ -55,6 +63,7 @@
     currentGifs: Icard[],
     isRequestInProgress: boolean
     inputValue: string
+    innerWidth: number | null
   }
 
   export default {
@@ -65,7 +74,8 @@
         defLimit: 25,
         currentGifs: [],
         isRequestInProgress: false,
-        inputValue: ''
+        inputValue: '',
+        innerWidth: null
       }
     },
 
@@ -81,19 +91,22 @@
       getGifsDefault (limit: number, offset: number): void
       {
         this.isRequestInProgress = true;
-        this.fillArrGifs( this.$myRequestControll.getGifs(limit, offset) );
+        this.fillArrGifs( MyRequestControll.getGifs(limit, offset) );
       },
 
       searchGif (q: string, limit: number, offset: number): void
       {
         this.isRequestInProgress = true;
-        this.fillArrGifs( this.$myRequestControll.searchGifs(q, limit, offset) );
+        this.fillArrGifs( MyRequestControll.searchGifs(q, limit, offset) );
       },
 
       fillArrGifs (promise: Promise<any>): void
       {
         promise.then( (result: any) => {
           result.json().then( (data: any) => {
+
+            let size = window.innerWidth < 650 ? 'fixed_width' : 'fixed_height';
+
             for (let i = 0; i < data.data.length; i++) {
               let item = data.data[i];
               const card: Icard = {
@@ -101,7 +114,7 @@
                 id: '',
                 position: window.innerHeight
               };
-              card.img = item.images['fixed_height'].url;
+              card.img = item.images[size].url;
               card.id = item.id;
               this.currentGifs.push(card);
             }
@@ -128,15 +141,18 @@
         }
       },
 
-    },
+      goUpHandler (): void
+      {
+        gsap.to(document.documentElement, {
+          scrollTop: 0,
+          duration: 1,
+        });
+      },
 
-    mounted (): void
-    {
-      this.getGifsDefault(this.defLimit, this.currentGifs.length);
-
-      window.onwheel = () => {
-
+      addGifs (): void
+      {
         let scroll = window.scrollY + window.innerHeight * 1.8 > document.documentElement.scrollHeight;
+
         let isAnimationEnd = (
           this.currentGifs &&
           this.currentGifs.length > 0 &&
@@ -152,8 +168,16 @@
           }
 
         }
-
       }
+
+    },
+
+    mounted (): void
+    {
+      this.innerWidth = window.innerWidth;
+      this.getGifsDefault(this.defLimit, this.currentGifs.length);
+      window.onwheel = this.addGifs;
+      window.onpointerdown = this.addGifs;
     }
 
   };
@@ -180,22 +204,31 @@
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-  }
+    // width: 400px;
 
-  .gifCard {
-    background-color: rgb(255, 255, 255);
-    border-radius: 30px;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 5px;
-    position: relative;
+    // img {
+    //   width: 300px;
+    // }
 
-    img {
+    .gifCard {
+      background-color: rgb(255, 255, 255);
       border-radius: 30px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 5px;
+      position: relative;
+
+      img {
+        border-radius: 30px;
+      }
+
     }
+
   }
+
+
 
   .nothing {
 
@@ -211,6 +244,31 @@
 
   .boxLoader {
     margin: 10px;
+  }
+
+  .goUp {
+    position: fixed;
+    width: 70px;
+    height: 70px;
+    background-color: rgba(237, 82, 4, 0.703);
+    right: 30px;
+    bottom: 30px;
+    font-size: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: 0.3s;
+    
+    svg {
+      fill: #fff;
+    }
+
+    &:hover {
+      background-color: rgba(255, 118, 50, 0.703);
+    }
+
   }
 
 </style>

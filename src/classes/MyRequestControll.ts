@@ -11,7 +11,7 @@ export default class MyRequestControll {
         },
     };
 
-    public getGifs (limit: number, offset: number): Promise<any>
+    public static getGifs (limit: number, offset: number): Promise<any>
     {
 
         let url = MyRequestControll.gifUrl + 
@@ -21,7 +21,7 @@ export default class MyRequestControll {
         return fetch(url, MyRequestControll.fetchOpt);
     }
 
-    public searchGifs (q: string, limit: number = 20, offset: number = 0): Promise<any>
+    public static searchGifs (q: string, limit: number = 20, offset: number = 0): Promise<any>
     {
         let url = MyRequestControll.gifUrlSearch + 
             `?api_key=${MyRequestControll.apiKey}` +
@@ -31,7 +31,7 @@ export default class MyRequestControll {
         return fetch(url, MyRequestControll.fetchOpt);
     }
 
-    public getGifsId (id: string): Promise<any>
+    public static getGifsId (id: string): Promise<any>
     {
         let query = `?api_key=${MyRequestControll.apiKey}`;
         return fetch(MyRequestControll.gifUrlId + `/${id}` + query, MyRequestControll.fetchOpt);
