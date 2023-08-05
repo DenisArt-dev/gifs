@@ -28,6 +28,8 @@
 
 <script lang="ts">
 
+import MyRequestControll from '@/classes/MyRequestControll';
+
 export default {
 
     props: ['id'],
@@ -43,7 +45,7 @@ export default {
     methods: {
         getGifFromId (): void
         {
-            this.$myRequestControll.getGifsId(this.id).then( (result: any) => {
+            MyRequestControll.getGifsId(this.id).then( (result: any) => {
                 result.json().then( (data: any) => {
                     this.name = data.data.user.display_name;
                     this.img = data.data.user.avatar_url;
